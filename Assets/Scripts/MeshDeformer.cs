@@ -55,4 +55,8 @@ public class MeshDeformer : MonoBehaviour {
 		float velocity = attenuatedForce * Time.deltaTime;
 		vertexVelocities[i] += pointToVertex.normalized * velocity;
 	}
+
+    private void OnMouseOver(){
+        MeshDeformerInput.HandleInput(1);
+    }
 }
