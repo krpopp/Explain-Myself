@@ -34,10 +34,12 @@ public class ArmPullScript : MonoBehaviour {
 
 	Vector3 lastMousePosition;
 	Vector3 offset;
-	Vector3 momentum;
+	public Vector3 momentum;
 
 	Vector3 startPos;
 	Vector3 startOffset;
+
+	Vector3 storedMomentum;
 
 	// Use this for initialization
 	void Start () {
@@ -70,22 +72,36 @@ public class ArmPullScript : MonoBehaviour {
 	#endregion
 
 	#region DETACHED
-	void InitDetached(){
 
+	bool pulledOneToOne = false;
+	void InitDetached(){
+		if(forwardNeighbor != null){
+			startOffset = transform.position - forwardNeighbor.transform.position;
+		}
 	}
 
 	void DetachedUpdate(){
 		if(forwardNeighbor != null){
-			offset = (transform.position - forwardNeighbor.transform.position) - startOffset;
+			offset = transform.position - forwardNeighbor.transform.position - startOffset;
+			
 			if(offset.magnitude > ArmPullManager.Instance.maxSegmentDistance){
-				transform.position = forwardNeighbor.transform.position + offset.normalized * ArmPullManager.Instance.maxSegmentDistance;
-				momentum = Vector3.zero;
-				Debug.Log("HELL0?");
+				transform.position = forwardNeighbor.transform.position + startOffset + offset.normalized * ArmPullManager.Instance.maxSegmentDistance;
+				if(!pulledOneToOne){
+					momentum = Vector3.zero;
+					storedMomentum = forwardNeighbor.momentum;
+					pulledOneToOne = true;
+				}
+				//TODO: make it so that it gets the momentum 
 			} else{
-				momentum -= offset * ArmPullManager.Instance.pullForce * Time.deltaTime;
+				if(pulledOneToOne){
+					pulledOneToOne = false;
+					momentum = storedMomentum;
+				} else{
+					momentum -= offset * ArmPullManager.Instance.pullForce * Time.deltaTime;
+				}
 			}
 		}
-		transform.position += momentum;
+		transform.position += Vector3.ClampMagnitude(momentum, ArmPullManager.Instance.maxPullMagnitude);
 	}
 	#endregion
 
@@ -97,6 +113,7 @@ public class ArmPullScript : MonoBehaviour {
 
 	void GrabbedUpdate(){
 		if(Input.GetMouseButtonUp(0)){
+			Debug.Log("DETACHING!");
 			SetState(SegmentState.DETACHED);
 		}
 
@@ -107,7 +124,7 @@ public class ArmPullScript : MonoBehaviour {
 
 		momentum -= offset * ArmPullManager.Instance.pullForce * Time.deltaTime;
 		
-		transform.position += momentum;
+		transform.position += Vector3.ClampMagnitude(momentum, ArmPullManager.Instance.maxPullMagnitude);
 	}
 	#endregion
 

@@ -26,6 +26,8 @@ public class ArmPullManager : MonoBehaviour {
 	[Range(0,1)] public float drag = 0.05f;
 	public float maxSegmentDistance = 4f;
 
+	public float maxPullMagnitude;
+
 	Vector3 rotateMomentum;
 
 
