@@ -26,6 +26,9 @@ public class ArmPullScript : MonoBehaviour {
 				InitGrabbed();
 				stateUpdate = GrabbedUpdate;
 				break;
+			case SegmentState.FIXED:
+				stateUpdate = null;
+				break;
 		}
 	}
 
@@ -34,15 +37,30 @@ public class ArmPullScript : MonoBehaviour {
 
 	Vector3 lastMousePosition;
 	Vector3 offset;
-	public Vector3 momentum;
+	Vector3 momentum;
 
 	Vector3 startPos;
-	Vector3 startOffset;
+	Vector3 startFrontOffset;
+	Vector3 startBackOffset;
+
+	bool firstDetached = true;
 
 	Vector3 storedMomentum;
 
+	Collider2D col;
+
 	// Use this for initialization
 	void Start () {
+		startPos = transform.position;
+		col = GetComponent<Collider2D>();
+		if(forwardNeighbor != null){
+			startFrontOffset = transform.position - forwardNeighbor.transform.position;
+			col.enabled = false;
+		}
+		if(backNeighbor != null){
+			startBackOffset = transform.position - backNeighbor.transform.position;
+		}
+		
 		SetState(currentState);
 	}
 	
@@ -59,48 +77,41 @@ public class ArmPullScript : MonoBehaviour {
 
 	#region ATTACHED
 	void InitAttached(){
-		startPos = transform.position;
 		if(forwardNeighbor != null)
-			startOffset = transform.position - forwardNeighbor.transform.position;
+			startFrontOffset = transform.position - forwardNeighbor.transform.position;
 	}
 
 	void AttachedUpdate(){
-		if(Vector3.Distance(forwardNeighbor.transform.position, transform.position) > ArmPullManager.Instance.detachDistance){
+		if(forwardNeighbor != null && (transform.position - forwardNeighbor.transform.position - startFrontOffset).magnitude > ArmPullManager.Instance.detachDistance){
 			SetState(SegmentState.DETACHED);
 		}
 	}
 	#endregion
 
 	#region DETACHED
-
-	bool pulledOneToOne = false;
 	void InitDetached(){
-		if(forwardNeighbor != null){
-			startOffset = transform.position - forwardNeighbor.transform.position;
+		if(firstDetached){
+			firstDetached = false;
+			col.enabled = true;
 		}
 	}
 
 	void DetachedUpdate(){
-		if(forwardNeighbor != null){
-			offset = transform.position - forwardNeighbor.transform.position - startOffset;
-			
-			if(offset.magnitude > ArmPullManager.Instance.maxSegmentDistance){
-				transform.position = forwardNeighbor.transform.position + startOffset + offset.normalized * ArmPullManager.Instance.maxSegmentDistance;
-				if(!pulledOneToOne){
-					momentum = Vector3.zero;
-					storedMomentum = forwardNeighbor.momentum;
-					pulledOneToOne = true;
-				}
-				//TODO: make it so that it gets the momentum 
-			} else{
-				if(pulledOneToOne){
-					pulledOneToOne = false;
-					momentum = storedMomentum;
-				} else{
-					momentum -= offset * ArmPullManager.Instance.pullForce * Time.deltaTime;
-				}
-			}
+		if(forwardNeighbor != null && backNeighbor != null){
+			Vector3 backOffset = transform.position - backNeighbor.transform.position - startBackOffset;
+			momentum -= backOffset.normalized * Mathf.Pow(backOffset.sqrMagnitude, ArmPullManager.Instance.magnitudePower) * ArmPullManager.Instance.pullForce;
+
+			Vector3 frontOffset = transform.position - forwardNeighbor.transform.position - startFrontOffset;
+			momentum -= frontOffset.normalized * Mathf.Pow(frontOffset.sqrMagnitude, ArmPullManager.Instance.magnitudePower) * ArmPullManager.Instance.pullForce;
+
+		} else if(forwardNeighbor != null){
+			Vector3 frontOffset = transform.position - forwardNeighbor.transform.position - startFrontOffset;
+			momentum -= frontOffset.normalized * Mathf.Pow(frontOffset.sqrMagnitude, ArmPullManager.Instance.magnitudePower) * ArmPullManager.Instance.pullForce;
+		} else{
+			Vector3 backOffset = transform.position - backNeighbor.transform.position - startBackOffset;
+			momentum -= backOffset.normalized * Mathf.Pow(backOffset.sqrMagnitude, ArmPullManager.Instance.magnitudePower) * ArmPullManager.Instance.pullForce;
 		}
+		momentum += new Vector3(0, ArmPullManager.Instance.gravity, 0);		
 		transform.position += Vector3.ClampMagnitude(momentum, ArmPullManager.Instance.maxPullMagnitude);
 	}
 	#endregion
@@ -113,7 +124,6 @@ public class ArmPullScript : MonoBehaviour {
 
 	void GrabbedUpdate(){
 		if(Input.GetMouseButtonUp(0)){
-			Debug.Log("DETACHING!");
 			SetState(SegmentState.DETACHED);
 		}
 
@@ -122,7 +132,7 @@ public class ArmPullScript : MonoBehaviour {
 
 		offset = transform.position - worldSpaceMouse;
 
-		momentum -= offset * ArmPullManager.Instance.pullForce * Time.deltaTime;
+		momentum -= offset * ArmPullManager.Instance.grabPullForce * Time.deltaTime;
 		
 		transform.position += Vector3.ClampMagnitude(momentum, ArmPullManager.Instance.maxPullMagnitude);
 	}
@@ -130,6 +140,8 @@ public class ArmPullScript : MonoBehaviour {
 
 	void OnMouseDown(){
 		if(currentState == SegmentState.DETACHED){
+			SetState(SegmentState.GRABBED);
+		} else if(currentState == SegmentState.ATTACHED && forwardNeighbor == null){
 			SetState(SegmentState.GRABBED);
 		}
 	}

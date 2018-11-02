@@ -5,7 +5,8 @@ using UnityEngine;
 public enum SegmentState{
 	ATTACHED,
 	DETACHED,
-	GRABBED
+	GRABBED,
+	FIXED
 }
 
 public class ArmPullManager : MonoBehaviour {
@@ -21,14 +22,20 @@ public class ArmPullManager : MonoBehaviour {
 		set { instance = value; }
 	}
 
-	public float detachDistance;
 	[Range(0,2)] public float pullForce = 1.2f;
 	[Range(0,1)] public float drag = 0.05f;
-	public float maxSegmentDistance = 4f;
+
+	[SerializeField] public float gravity = -0.4f;
+
+	public float grabPullForce = 0.5f;
+
+	public float detachDistance = 4.5f;
 
 	public float maxPullMagnitude;
 
 	Vector3 rotateMomentum;
+
+	public float magnitudePower = 2f;
 
 
 
