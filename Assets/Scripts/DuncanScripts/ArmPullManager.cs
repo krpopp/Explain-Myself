@@ -47,6 +47,7 @@ public class ArmPullManager : MonoBehaviour {
 
 	bool somethingGrabbed = false;
 	Transform grabbedSegment;
+	Vector3 grabOffset;
 
 	[SerializeField] float armPullForce = 1f;
 	[SerializeField] float gravityForce = 1f;
@@ -82,13 +83,12 @@ public class ArmPullManager : MonoBehaviour {
 		rotateMomentum *= 0.9f;
 	}
 
-	Vector3 grabOffset;
 	public void SomethingGrabbed(Transform segment){
 		grabbedSegment = segment;
 		somethingGrabbed = true;
 		Vector3 worldSpaceMousePos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
 		worldSpaceMousePos.z = 0;
-		grabOffset = worldSpaceMousePos - transform.position;
+		grabOffset = worldSpaceMousePos;
 	}
 
 	public void LetGo(){

@@ -63,7 +63,7 @@ public class ArmPullScript : MonoBehaviour {
 		rend = GetComponent<SpriteRenderer>();
 		if(forwardNeighbor != null){
 			startFrontOffset = transform.position - forwardNeighbor.transform.position;
-			col.enabled = false;
+			// col.enabled = false;
 		}
 		if(backNeighbor != null){
 			startBackOffset = transform.position - backNeighbor.transform.position;
@@ -108,7 +108,7 @@ public class ArmPullScript : MonoBehaviour {
 
 			Vector3 offset = transform.position - worldSpaceMouse;
 			if(offset.magnitude > ArmPullManager.Instance.detachDistance){
-				SetState(SegmentState.DETACHED);
+				SetState(SegmentState.GRABBED);
 			}
 		}
 	}
@@ -158,6 +158,7 @@ public class ArmPullScript : MonoBehaviour {
 			ArmPullManager.Instance.LetGo();
 			SetState(SegmentState.DETACHED);
 		}
+		Debug.Log("HELLO");
 
 		Vector3 worldSpaceMouse = Camera.main.ScreenToWorldPoint(Input.mousePosition);
 		worldSpaceMouse.z = 0;
@@ -176,9 +177,10 @@ public class ArmPullScript : MonoBehaviour {
 	void OnMouseDown(){
 		if(currentState == SegmentState.DETACHED){
 			SetState(SegmentState.GRABBED);
-		} else if(currentState == SegmentState.ATTACHED && forwardNeighbor == null){
+		} else if(currentState == SegmentState.ATTACHED){
 			ArmPullManager.Instance.SomethingGrabbed(transform);
-			forwardGrabbed = true;
+			if(forwardNeighbor == null)
+				forwardGrabbed = true;
 		}
 	}
 
