@@ -158,7 +158,6 @@ public class ArmPullScript : MonoBehaviour {
 			ArmPullManager.Instance.LetGo();
 			SetState(SegmentState.DETACHED);
 		}
-		Debug.Log("HELLO");
 
 		Vector3 worldSpaceMouse = Camera.main.ScreenToWorldPoint(Input.mousePosition);
 		worldSpaceMouse.z = 0;
