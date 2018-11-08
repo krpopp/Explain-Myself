@@ -129,7 +129,6 @@ public class ArmPullScript : MonoBehaviour {
 	void InitDetached(){
 		if(firstDetached){
 			firstDetached = false;
-			transform.parent = null;
 		}
 	}
 
