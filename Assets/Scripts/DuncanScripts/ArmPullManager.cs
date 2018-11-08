@@ -52,6 +52,8 @@ public class ArmPullManager : MonoBehaviour {
 	[SerializeField] float armPullForce = 1f;
 	[SerializeField] float gravityForce = 1f;
 
+	public Vector3 stretchedScale;
+
 	// Use this for initialization
 	void Start () {
 		
