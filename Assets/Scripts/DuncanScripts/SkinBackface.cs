@@ -65,7 +65,7 @@ public class SkinBackface : MonoBehaviour {
 			Transform childTrans = GetVertChildrenRecursive(trans.GetChild(i));
 			if(childTrans != null){
 				if(childTrans.gameObject.name.Contains("Verts")){
-					Debug.Log(childTrans.gameObject.name);
+					// Debug.Log(childTrans.gameObject.name);
 					allVertChildren.Add(childTrans);
 				}
 			}
